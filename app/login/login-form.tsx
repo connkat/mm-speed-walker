@@ -34,9 +34,9 @@ export function LoginForm() {
           <input
             id="code"
             name="code"
-            type="password"
+            type="text"
             required
-            placeholder="••••••••"
+            placeholder="access code"
             className="terminal-input flex-1 py-1 text-sm"
           />
         </div>
