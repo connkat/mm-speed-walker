@@ -91,6 +91,7 @@ export function GameCanvas({ userId, email }: Props) {
   const lastStepTimeRef = useRef<number>(0);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const milestoneTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stepCountRef = useRef(0);
   const [stepCount, setStepCount] = useState(0);
   const [lastFoot, setLastFoot] = useState<Foot | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -119,6 +120,7 @@ export function GameCanvas({ userId, email }: Props) {
         .single();
       const saved = data?.steps ?? 0;
       setPersistedSteps(saved);
+      stepCountRef.current = saved;
       setStepCount(saved);
       setLoaded(true);
       const [{ count: above }, { count: total }] = await Promise.all([
@@ -155,6 +157,7 @@ export function GameCanvas({ userId, email }: Props) {
   const startGame = useCallback(() => {
     lastFootRef.current = null;
     lastStepTimeRef.current = 0;
+    stepCountRef.current = persistedSteps;
     setStepCount(persistedSteps);
     setLastFoot(null);
     setError(null);
@@ -185,14 +188,13 @@ export function GameCanvas({ userId, email }: Props) {
       lastFootRef.current = foot;
       lastStepTimeRef.current = now;
       setLastFoot(foot);
-      setStepCount((c) => {
-        const next = c + 1;
-        if (isMilestone(next)) {
-          saveScore(next);
-          showMilestone(`CHECKPOINT: ${next} STEPS`);
-        }
-        return next;
-      });
+      const next = stepCountRef.current + 1;
+      stepCountRef.current = next;
+      setStepCount(next);
+      if (isMilestone(next)) {
+        saveScore(next);
+        showMilestone(`CHECKPOINT: ${next} STEPS`);
+      }
     };
 
     window.addEventListener("keydown", handleKey);
