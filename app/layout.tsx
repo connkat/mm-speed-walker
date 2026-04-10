@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MM Speed Walker",
+  title: "Metalab Moves Speed Walker",
   description: "Terminal-based speed walker game",
 };
 
