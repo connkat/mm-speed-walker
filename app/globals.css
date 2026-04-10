@@ -1,26 +1,85 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-terminal-bg: #0a0a0a;
+  --color-terminal-green: #00ff41;
+  --color-terminal-green-dim: #00cc33;
+  --color-terminal-green-dark: #003b0f;
+  --color-terminal-border: #00ff41;
+  --font-mono: "Courier New", Courier, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+  background-color: #0a0a0a;
+  color: #00ff41;
+  font-family: "Courier New", Courier, monospace;
+}
+
+/* Terminal cursor blink */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink::after {
+  content: "_";
+  animation: blink 1s step-start infinite;
+}
+
+/* Terminal scanlines overlay */
+@keyframes scanlines {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 4px; }
+}
+
+.scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.08) 3px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  z-index: 9999;
+}
+
+/* Terminal glow on text */
+.terminal-glow {
+  text-shadow: 0 0 8px #00ff41, 0 0 16px #00ff4166;
+}
+
+/* Box border style */
+.terminal-box {
+  border: 1px solid #00ff41;
+  box-shadow: 0 0 6px #00ff4133, inset 0 0 6px #00ff410d;
+}
+
+/* Input style */
+input.terminal-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #00ff41;
+  color: #00ff41;
+  font-family: inherit;
+  outline: none;
+  caret-color: #00ff41;
+}
+
+input.terminal-input::placeholder {
+  color: #00cc3366;
+}
+
+/* Selection color */
+::selection {
+  background: #00ff4133;
+  color: #00ff41;
 }
