@@ -1,13 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
+import { LeaderboardTabs } from "./leaderboard-tabs";
 
 export default async function LeaderboardPage() {
   const supabase = await createClient();
+  const today = new Date().toISOString().split("T")[0];
 
-  const { data: scores } = await supabase
-    .from("leaderboard")
-    .select("email, steps")
-    .order("steps", { ascending: false })
-    .limit(20);
+  const [{ data: allTime }, { data: daily }] = await Promise.all([
+    supabase.from("leaderboard").select("email, steps").order("steps", { ascending: false }).limit(20),
+    supabase.from("daily_steps").select("email, steps").eq("date", today).order("steps", { ascending: false }).limit(20),
+  ]);
 
   return (
     <div className="min-h-full flex flex-col items-center justify-center p-8">
@@ -18,33 +19,11 @@ export default async function LeaderboardPage() {
             <p className="text-lg terminal-glow cursor-blink">LEADERBOARD</p>
           </div>
 
-          {!scores || scores.length === 0 ? (
-            <p className="text-terminal-green-dim text-xs tracking-widest text-center py-8">
-              NO SCORES YET. BE THE FIRST TO RACE.
-            </p>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-terminal-green-dim text-xs tracking-widest border-b border-terminal-green-dark">
-                  <th className="text-left py-2">#</th>
-                  <th className="text-left py-2">USER</th>
-                  <th className="text-right py-2">STEPS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scores.map((row, i) => (
-                  <tr
-                    key={i}
-                    className={`border-b border-terminal-green-dark ${i === 0 ? "terminal-glow" : "text-terminal-green-dim"}`}
-                  >
-                    <td className="py-2 pr-4">{String(i + 1).padStart(2, "0")}</td>
-                    <td className="py-2">{row.email.split("@")[0]}</td>
-                    <td className="py-2 text-right">{row.steps}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+          <LeaderboardTabs
+            allTime={allTime ?? []}
+            daily={daily ?? []}
+            today={today}
+          />
 
           <div className="mt-6 pt-4 border-t border-terminal-green-dark text-center">
             <a

@@ -92,6 +92,7 @@ export function GameCanvas({ userId, email }: Props) {
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const milestoneTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stepCountRef = useRef(0);
+  const dailyStepCountRef = useRef(0);
   const [stepCount, setStepCount] = useState(0);
   const [lastFoot, setLastFoot] = useState<Foot | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -112,16 +113,17 @@ export function GameCanvas({ userId, email }: Props) {
   // Load existing step count on mount
   useEffect(() => {
     const supabase = createClient();
+    const today = new Date().toISOString().split("T")[0];
     const load = async () => {
-      const { data } = await supabase
-        .from("leaderboard")
-        .select("steps")
-        .eq("user_id", userId)
-        .single();
+      const [{ data }, { data: dailyData }] = await Promise.all([
+        supabase.from("leaderboard").select("steps").eq("user_id", userId).single(),
+        supabase.from("daily_steps").select("steps").eq("user_id", userId).eq("date", today).single(),
+      ]);
       const saved = data?.steps ?? 0;
       setPersistedSteps(saved);
       stepCountRef.current = saved;
       setStepCount(saved);
+      dailyStepCountRef.current = dailyData?.steps ?? 0;
       setLoaded(true);
       const [{ count: above }, { count: total }] = await Promise.all([
         supabase.from("leaderboard").select("*", { count: "exact", head: true }).gt("steps", saved),
@@ -145,12 +147,19 @@ export function GameCanvas({ userId, email }: Props) {
     milestoneTimerRef.current = setTimeout(() => setMilestone(null), 2000);
   }, []);
 
-  const saveScore = useCallback(async (steps: number) => {
+  const saveScore = useCallback(async (steps: number, dailySteps: number) => {
     const supabase = createClient();
-    await supabase.from("leaderboard").upsert(
-      { user_id: userId, email, steps },
-      { onConflict: "user_id" }
-    );
+    const today = new Date().toISOString().split("T")[0];
+    await Promise.all([
+      supabase.from("leaderboard").upsert(
+        { user_id: userId, email, steps },
+        { onConflict: "user_id" }
+      ),
+      supabase.from("daily_steps").upsert(
+        { user_id: userId, email, date: today, steps: dailySteps },
+        { onConflict: "user_id,date" }
+      ),
+    ]);
     fetchRank(steps);
   }, [userId, email, fetchRank]);
 
@@ -190,9 +199,11 @@ export function GameCanvas({ userId, email }: Props) {
       setLastFoot(foot);
       const next = stepCountRef.current + 1;
       stepCountRef.current = next;
+      const dailyNext = dailyStepCountRef.current + 1;
+      dailyStepCountRef.current = dailyNext;
       setStepCount(next);
       if (isMilestone(next)) {
-        saveScore(next);
+        saveScore(next, dailyNext);
         showMilestone(`CHECKPOINT: ${next} STEPS`);
       }
     };
