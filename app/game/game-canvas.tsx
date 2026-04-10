@@ -13,6 +13,12 @@ function isMilestone(steps: number): boolean {
   return false;
 }
 
+function nextMilestone(steps: number): number {
+  if (steps < 10) return 10;
+  if (steps < 50) return 50;
+  return Math.ceil((steps + 1) / 100) * 100;
+}
+
 const BODY = `
 
 
@@ -89,21 +95,40 @@ export function GameCanvas({ userId, email }: Props) {
   const [lastFoot, setLastFoot] = useState<Foot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [milestone, setMilestone] = useState<string | null>(null);
+  const [rank, setRank] = useState<number | null>(null);
+  const [totalUsers, setTotalUsers] = useState<number | null>(null);
+
+  const fetchRank = useCallback(async (steps: number) => {
+    const supabase = createClient();
+    const [{ count: above }, { count: total }] = await Promise.all([
+      supabase.from("leaderboard").select("*", { count: "exact", head: true }).gt("steps", steps),
+      supabase.from("leaderboard").select("*", { count: "exact", head: true }),
+    ]);
+    setRank((above ?? 0) + 1);
+    setTotalUsers(total ?? 0);
+  }, []);
 
   // Load existing step count on mount
   useEffect(() => {
     const supabase = createClient();
-    supabase
-      .from("leaderboard")
-      .select("steps")
-      .eq("user_id", userId)
-      .single()
-      .then(({ data }) => {
-        const saved = data?.steps ?? 0;
-        setPersistedSteps(saved);
-        setStepCount(saved);
-        setLoaded(true);
-      });
+    const load = async () => {
+      const { data } = await supabase
+        .from("leaderboard")
+        .select("steps")
+        .eq("user_id", userId)
+        .single();
+      const saved = data?.steps ?? 0;
+      setPersistedSteps(saved);
+      setStepCount(saved);
+      setLoaded(true);
+      const [{ count: above }, { count: total }] = await Promise.all([
+        supabase.from("leaderboard").select("*", { count: "exact", head: true }).gt("steps", saved),
+        supabase.from("leaderboard").select("*", { count: "exact", head: true }),
+      ]);
+      setRank((above ?? 0) + 1);
+      setTotalUsers(total ?? 0);
+    };
+    load();
   }, [userId]);
 
   const showError = useCallback((msg: string) => {
@@ -124,7 +149,8 @@ export function GameCanvas({ userId, email }: Props) {
       { user_id: userId, email, steps },
       { onConflict: "user_id" }
     );
-  }, [userId, email]);
+    fetchRank(steps);
+  }, [userId, email, fetchRank]);
 
   const startGame = useCallback(() => {
     lastFootRef.current = null;
@@ -174,7 +200,35 @@ export function GameCanvas({ userId, email }: Props) {
   }, [phase, showError, showMilestone, saveScore]);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-8">
+    <div className="flex-1 relative flex flex-col items-center justify-center gap-8">
+      {phase === "playing" && (
+        <div className="absolute top-8 right-60 text-right">
+          <p className="text-xs text-terminal-green-dim tracking-widest">NEXT CHECKPOINT</p>
+          <p className="text-3xl terminal-glow tracking-widest font-bold">
+            {String(nextMilestone(stepCount)).padStart(4, "0")}
+          </p>
+        </div>
+      )}
+
+      {phase === "playing" && (
+        <div className="absolute top-8 left-80">
+          <p className="text-3xl terminal-glow tracking-widest font-bold">
+            {String(stepCount).padStart(4, "0")}
+          </p>
+          <p className="text-xs text-terminal-green-dim tracking-widest">STEPS</p>
+          {rank !== null && (
+            <>
+              <p className="text-3xl terminal-glow tracking-widest font-bold mt-4">
+                #{String(rank).padStart(2, "0")}
+              </p>
+              <p className="text-xs text-terminal-green-dim tracking-widest">
+                RANK OF {totalUsers}
+              </p>
+            </>
+          )}
+        </div>
+      )}
+
       <pre className="terminal-glow text-terminal-green leading-snug select-none text-sm">
         {error?.includes("Cowboy")
           ? (lastFoot === "R" ? RUNNER_B_COWBOY : RUNNER_A_COWBOY)
@@ -215,9 +269,6 @@ export function GameCanvas({ userId, email }: Props) {
               <div className="flex items-center gap-6 text-sm tracking-widest">
                 <span className={lastFoot !== "L" ? "terminal-glow" : "text-terminal-green-dark"}>
                   {"<"} L
-                </span>
-                <span className="text-terminal-green-dim text-xs">
-                  STEPS: {String(stepCount).padStart(4, "0")}
                 </span>
                 <span className={lastFoot !== "R" ? "terminal-glow" : "text-terminal-green-dark"}>
                   R {">"}
