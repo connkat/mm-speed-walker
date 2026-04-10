@@ -14,6 +14,9 @@ function isMilestone(steps: number): boolean {
 }
 
 const BODY = `
+
+
+
                         ,////,
                        (======)
                         /// 6|
@@ -49,8 +52,25 @@ const LEGS_B = `
 
 
 
+const BODY_COWBOY = `
+                         .-.-.
+                      _ /     \\ _
+                    / \`\\=====/\` \\
+                    '.__\`-----\`__.'
+                         \`\`\`\`\`
+                        /// 6|
+                        //  _|
+                       _/_,-'
+                  _.-/'/   \\   ,/;,
+               ,-' /'  \\_   \\ / _/
+               \`\\ /     _/\\  \` /
+                 |     /,  \`\\_/
+                 |=====\\'`;
+
 const RUNNER_A = BODY + LEGS_A;
 const RUNNER_B = BODY + LEGS_B;
+const RUNNER_A_COWBOY = BODY_COWBOY + LEGS_A;
+const RUNNER_B_COWBOY = BODY_COWBOY + LEGS_B;
 
 interface Props {
   userId: string;
@@ -132,7 +152,7 @@ export function GameCanvas({ userId, email }: Props) {
       }
 
       if (lastFootRef.current === foot) {
-        showError("ERROR! Watch your step or you'll fall!");
+        showError("ERROR! Watch your step!");
         return;
       }
 
@@ -156,7 +176,9 @@ export function GameCanvas({ userId, email }: Props) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-8">
       <pre className="terminal-glow text-terminal-green leading-snug select-none text-sm">
-        {lastFoot === "R" ? RUNNER_B : RUNNER_A}
+        {error?.includes("Cowboy")
+          ? (lastFoot === "R" ? RUNNER_B_COWBOY : RUNNER_A_COWBOY)
+          : (lastFoot === "R" ? RUNNER_B : RUNNER_A)}
       </pre>
 
       {phase === "idle" && (
