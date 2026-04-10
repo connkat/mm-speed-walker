@@ -2,6 +2,27 @@ import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/actions/auth";
 import { redirect } from "next/navigation";
 
+const RUNNER = `
+                        ,////,
+                       (======)
+                        /// o|
+                        //  _|
+                       _/_,-'
+                  _.-/'/   \\   ,/;,
+               ,-' /'  \\_   \\ / _/
+               \`\\ /     _/\\  \` /
+                 |     /,  \`\\_/
+                 |=====\\'
+   /\\_          /\`      /\\
+ /' /_\`\`--.__/\\  \`,. /  \\
+|_/\`  \`-._     \`\\/  \`\\   \`.
+           \`-.__/'     \`\\---|
+                         \`\\  \\
+                           \`\\ \\
+                             \\_\\__
+                              \\___)
+`;
+
 export default async function GamePage() {
   const supabase = await createClient();
   const {
@@ -15,87 +36,42 @@ export default async function GamePage() {
   return (
     <div className="min-h-full flex flex-col p-4 md:p-8">
       {/* Top bar */}
-      <header className="terminal-box p-3 mb-6 flex items-center justify-between">
+      <header className="terminal-box p-3 mb-8 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <span className="terminal-glow text-sm font-bold tracking-widest">MM SPEED WALKER</span>
-          <span className="text-xs text-[#00cc33]">|</span>
-          <span className="text-xs text-[#00cc33]">USER: {user.email}</span>
+          <span className="text-xs text-terminal-green-dim">|</span>
+          <span className="text-xs text-terminal-green-dim">USER: {user.email}</span>
         </div>
         <form action={logout}>
           <button
             type="submit"
-            className="text-xs text-[#00cc33] hover:text-[#00ff41] uppercase tracking-widest transition-colors"
+            className="text-xs text-terminal-green-dim hover:text-terminal-green uppercase tracking-widest transition-colors"
           >
             [ LOGOUT ]
           </button>
         </form>
       </header>
 
-      {/* Main game area */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Game viewport */}
-        <div className="md:col-span-2 terminal-box p-4 flex flex-col">
-          <p className="text-xs text-[#00cc33] mb-3 uppercase tracking-widest">GAME WORLD</p>
-          <div className="flex-1 flex items-center justify-center">
-            <pre className="terminal-glow text-xs leading-none select-none">
-{`
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ~                              ~
-    ~    ___                       ~
-    ~   /   \\   @                  ~
-    ~  | o o |  /|\\                ~
-    ~   \\___/   / \\                ~
-    ~           WALKER             ~
-    ~                              ~
-    ~  ============================~
-    ~  [############################~
-    ~  [############################~
-    ~  ============================~
-    ~           ROAD               ~
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-`}
-            </pre>
-          </div>
-          <div className="border-t border-[#003b0f] pt-3 mt-3 text-xs text-[#00cc33]">
-            <span>USE [WASD] OR [ARROW KEYS] TO MOVE</span>
-          </div>
+      {/* Runner landing */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-10">
+        <pre className="terminal-glow text-terminal-green leading-snug select-none text-sm">{RUNNER}</pre>
+
+        <div className="text-center space-y-2">
+          <p className="text-lg terminal-glow tracking-widest cursor-blink">
+            READY TO RACE
+          </p>
+          <p className="text-xs text-terminal-green-dim tracking-widest">
+            METALAB SPEED WALKING CHAMPIONSHIP
+          </p>
         </div>
 
-        {/* Side panel */}
-        <div className="flex flex-col gap-4">
-          {/* Stats */}
-          <div className="terminal-box p-4">
-            <p className="text-xs text-[#00cc33] mb-3 uppercase tracking-widest border-b border-[#003b0f] pb-2">STATS</p>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-[#00cc33]">SPEED</span>
-                <span>[####------] 40%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#00cc33]">STAMINA</span>
-                <span>[#######---] 70%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#00cc33]">SCORE</span>
-                <span>000000</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#00cc33]">LEVEL</span>
-                <span>001</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Log */}
-          <div className="terminal-box p-4 flex-1">
-            <p className="text-xs text-[#00cc33] mb-3 uppercase tracking-widest border-b border-[#003b0f] pb-2">SYSTEM LOG</p>
-            <div className="space-y-1 text-xs text-[#00cc33] font-mono">
-              <p>&gt; SYSTEM BOOT OK</p>
-              <p>&gt; AUTH SESSION ACTIVE</p>
-              <p>&gt; WORLD LOADED</p>
-              <p>&gt; AWAITING INPUT<span className="cursor-blink" /></p>
-            </div>
-          </div>
+        <div className="flex gap-6">
+          <button className="terminal-box px-8 py-3 text-sm uppercase tracking-widest hover:bg-terminal-green-dark transition-colors terminal-glow">
+            [ START GAME ]
+          </button>
+          <button className="px-8 py-3 text-sm uppercase tracking-widest text-terminal-green-dim hover:text-terminal-green transition-colors border border-terminal-green-dark hover:border-terminal-green">
+            [ LEADERBOARD ]
+          </button>
         </div>
       </div>
     </div>
