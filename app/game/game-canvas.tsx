@@ -174,75 +174,79 @@ export function GameCanvas({ userId, email }: Props) {
     setPhase("playing");
   }, [persistedSteps]);
 
+  const handleStep = useCallback((foot: Foot) => {
+    const now = Date.now();
+    if (now - lastStepTimeRef.current < STEP_INTERVAL_MS) {
+      showError("ERROR! Slow down Cowboy");
+      return;
+    }
+    if (lastFootRef.current === foot) {
+      showError("ERROR! Watch your step!");
+      return;
+    }
+    lastFootRef.current = foot;
+    lastStepTimeRef.current = now;
+    setLastFoot(foot);
+    const next = stepCountRef.current + 1;
+    stepCountRef.current = next;
+    const dailyNext = dailyStepCountRef.current + 1;
+    dailyStepCountRef.current = dailyNext;
+    setStepCount(next);
+    if (isMilestone(next)) {
+      saveScore(next, dailyNext);
+      showMilestone(`CHECKPOINT: ${next} STEPS`);
+    }
+  }, [showError, showMilestone, saveScore]);
+
   useEffect(() => {
     if (phase !== "playing") return;
-
     const handleKey = (e: KeyboardEvent) => {
       if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
       e.preventDefault();
-
-      const foot: Foot = e.key === "ArrowRight" ? "R" : "L";
-      const now = Date.now();
-
-      if (now - lastStepTimeRef.current < STEP_INTERVAL_MS) {
-        showError("ERROR! Slow down Cowboy");
-        return;
-      }
-
-      if (lastFootRef.current === foot) {
-        showError("ERROR! Watch your step!");
-        return;
-      }
-
-      lastFootRef.current = foot;
-      lastStepTimeRef.current = now;
-      setLastFoot(foot);
-      const next = stepCountRef.current + 1;
-      stepCountRef.current = next;
-      const dailyNext = dailyStepCountRef.current + 1;
-      dailyStepCountRef.current = dailyNext;
-      setStepCount(next);
-      if (isMilestone(next)) {
-        saveScore(next, dailyNext);
-        showMilestone(`CHECKPOINT: ${next} STEPS`);
-      }
+      handleStep(e.key === "ArrowRight" ? "R" : "L");
     };
-
+    const handleTouch = (e: TouchEvent) => {
+      const x = e.changedTouches[0].clientX;
+      handleStep(x < window.innerWidth / 2 ? "L" : "R");
+    };
     window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [phase, showError, showMilestone, saveScore]);
+    window.addEventListener("touchstart", handleTouch);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      window.removeEventListener("touchstart", handleTouch);
+    };
+  }, [phase, handleStep]);
 
   return (
     <div className="flex-1 relative flex flex-col items-center justify-center gap-8">
       {phase === "playing" && (
-        <div className="absolute top-8 right-60 text-right">
-          <p className="text-xs text-terminal-green-dim tracking-widest">NEXT CHECKPOINT</p>
-          <p className="text-3xl terminal-glow tracking-widest font-bold">
-            {String(nextMilestone(stepCount)).padStart(4, "0")}
-          </p>
-        </div>
-      )}
-
-      {phase === "playing" && (
-        <div className="absolute top-8 left-80">
-          <p className="text-3xl terminal-glow tracking-widest font-bold">
-            {String(stepCount).padStart(4, "0")}
-          </p>
-          <p className="text-xs text-terminal-green-dim tracking-widest">STEPS</p>
+        <div className="absolute top-4 sm:top-8 left-4 sm:left-80 flex flex-col gap-4">
+          <div>
+            <p className="text-xl sm:text-3xl terminal-glow tracking-widest font-bold">
+              {String(stepCount).padStart(4, "0")}
+            </p>
+            <p className="text-[10px] sm:text-xs text-terminal-green-dim tracking-widest">STEPS</p>
+          </div>
           {rank !== null && (
-            <>
-              <p className="text-3xl terminal-glow tracking-widest font-bold mt-4">
+            <div>
+              <p className="text-xl sm:text-3xl terminal-glow tracking-widest font-bold">
                 #{String(rank).padStart(2, "0")}
               </p>
-              <p className="text-xs text-terminal-green-dim tracking-widest">
+              <p className="text-[10px] sm:text-xs text-terminal-green-dim tracking-widest">
                 RANK OF {totalUsers}
               </p>
-            </>
+            </div>
           )}
+          <div>
+            <p className="text-[10px] sm:text-xs text-terminal-green-dim tracking-widest">NEXT CHECKPOINT</p>
+            <p className="text-xl sm:text-3xl terminal-glow tracking-widest font-bold">
+              {String(nextMilestone(stepCount)).padStart(4, "0")}
+            </p>
+          </div>
         </div>
       )}
 
-      <pre className="terminal-glow text-terminal-green leading-snug select-none text-sm">
+      <pre className="terminal-glow text-terminal-green leading-snug select-none text-[7px] sm:text-sm">
         {error?.includes("Cowboy")
           ? (lastFoot === "R" ? RUNNER_B_COWBOY : RUNNER_A_COWBOY)
           : (lastFoot === "R" ? RUNNER_B : RUNNER_A)}
