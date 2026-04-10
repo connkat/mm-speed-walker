@@ -1,4 +1,4 @@
-import { signup } from "@/app/actions/auth";
+import { SignupForm } from "./signup-form";
 
 export default function SignupPage() {
   return (
@@ -15,68 +15,24 @@ export default function SignupPage() {
 
         {/* Terminal box */}
         <div className="terminal-box p-6">
-          <div className="border-b border-[#00ff41] pb-3 mb-6">
-            <p className="text-xs text-[#00cc33]">USER REGISTRATION v1.0.0</p>
+          <div className="border-b border-terminal-green pb-3 mb-6">
+            <p className="text-xs text-terminal-green-dim">USER REGISTRATION v1.0.0</p>
             <p className="text-lg terminal-glow cursor-blink">CREATE NEW ACCOUNT</p>
           </div>
 
-          <form action={signup} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-xs text-[#00cc33] mb-1 uppercase tracking-widest">
-                USER ID (EMAIL)
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="text-[#00cc33]">&gt;</span>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="user@terminal.net"
-                  className="terminal-input flex-1 py-1 text-sm"
-                />
-              </div>
-            </div>
+          <SignupForm />
 
-            <div>
-              <label htmlFor="password" className="block text-xs text-[#00cc33] mb-1 uppercase tracking-widest">
-                SET ACCESS CODE
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="text-[#00cc33]">&gt;</span>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  minLength={6}
-                  placeholder="min 6 characters"
-                  className="terminal-input flex-1 py-1 text-sm"
-                />
-              </div>
-            </div>
-
-            <div className="pt-2">
-              <button
-                type="submit"
-                className="w-full terminal-box py-2 text-sm uppercase tracking-widest hover:bg-[#00ff4110] transition-colors terminal-glow"
-              >
-                [ INITIALIZE USER ]
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-6 pt-4 border-t border-[#003b0f] text-center">
-            <p className="text-xs text-[#00cc33]">
+          <div className="mt-6 pt-4 border-t border-terminal-green-dark text-center">
+            <p className="text-xs text-terminal-green-dim">
               ALREADY REGISTERED?{" "}
-              <a href="/login" className="text-[#00ff41] hover:terminal-glow underline underline-offset-4">
+              <a href="/login" className="text-terminal-green hover:terminal-glow underline underline-offset-4">
                 ACCESS TERMINAL
               </a>
             </p>
           </div>
         </div>
 
-        <p className="text-center text-xs text-[#003b0f] mt-4">
+        <p className="text-center text-xs text-terminal-green-dark mt-4">
           ALL SESSIONS ARE MONITORED AND LOGGED
         </p>
       </div>

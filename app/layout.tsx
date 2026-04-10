@@ -13,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
-      <body className="h-full bg-[#0a0a0a] text-[#00ff41] font-mono antialiased">
+      <body className="h-full bg-terminal-bg text-[#00ff41] font-mono antialiased">
         <div className="scanlines" aria-hidden="true" />
         {children}
       </body>

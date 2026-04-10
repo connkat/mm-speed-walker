@@ -30,7 +30,13 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/signup");
+
+  // /signup is deprecated — redirect to /login
+  if (pathname.startsWith("/signup")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  const isAuthRoute = pathname.startsWith("/login");
 
   if (!user && !isAuthRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
